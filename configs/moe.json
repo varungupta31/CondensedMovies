@@ -34,7 +34,7 @@
         "args": {
             "data_dir": "data",
             "metadata_dir": "data/metadata",
-            "batch_size": 64,
+            "batch_size": 32,
             "shuffle": true,
             "num_workers": 4,
             "label": "description",
@@ -43,11 +43,11 @@
                 "characters": false,
                 "clip_name": false,
                 "description": true,
-                "face": true,
-                "rgb": true,
+                "face": false,
+                "rgb": false,
                 "scene": true,
-                "speech": true,
-                "video": true,
+                "speech": false,
+                "video": false,
                 "s3d": false
             },
             "experts": {
@@ -75,7 +75,7 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.001,
+            "lr": 3e-4,
             "weight_decay": 0,
             "amsgrad": true
         }
@@ -100,12 +100,12 @@
         }
     },
     "trainer": {
-        "epochs": 100,
-        "save_dir": "saved",
+        "epochs": 200,
+        "save_dir": "/ssd_scratch/cvit/varun/saved",
         "save_period": 1,
         "verbosity": 2,
         "monitor": "min val_loss",
-        "early_stop": 4,
+        "early_stop": 50,
         "tensorboard": false,
         "retrieval": "inter"
     }

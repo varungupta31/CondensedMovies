@@ -6,7 +6,7 @@ from utils import inf_loop
 from model.model import sim_matrix
 import ipdb
 from torch import autograd
-
+import wandb
 class Trainer(BaseTrainer):
     """
     Trainer class
@@ -76,6 +76,13 @@ class Trainer(BaseTrainer):
             # total_metrics += self._eval_metrics(output.cpu().detach().numpy())
 
             if batch_idx % self.log_step == 0:
+
+                if(batch_idx == 0):
+                    #The loss before training started!
+                    wandb.log({"train/Train_Loss":loss.item()}, step=epoch-1)
+                    
+
+
                 self.logger.debug('Train Epoch: {} {} Loss: {:.6f}'.format(
                     epoch,
                     self._progress(batch_idx),
@@ -90,13 +97,30 @@ class Trainer(BaseTrainer):
             'metrics': (total_metrics / self.len_epoch).tolist()
         }
 
+        
+        
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
             log.update(val_log)
 
         if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
+            self.lr_scheduler.step()    
 
+        wandb.log({'train/Train_Loss':log['loss'],
+                'val/Valid_Loss':log['val_loss'],
+                'val/t2v_R1':log['nested_val_metrics']['t2v_metrics']['R1'],
+                'val/t2v_R5':log['nested_val_metrics']['t2v_metrics']['R5'],
+                'val/t2v_R10':log['nested_val_metrics']['t2v_metrics']['R10'],
+                'val/t2v_R50':log['nested_val_metrics']['t2v_metrics']['R50'],
+                'val/t2v_MedR':log['nested_val_metrics']['t2v_metrics']['MedR'],
+                'val/t2v_MeanR':log['nested_val_metrics']['t2v_metrics']['MeanR'],
+                'val/v2t_R1':log['nested_val_metrics']['v2t_metrics']['R1'],
+                'val/v2t_R5':log['nested_val_metrics']['v2t_metrics']['R5'],
+                'val/v2t_R10':log['nested_val_metrics']['v2t_metrics']['R10'],
+                'val/v2t_R50':log['nested_val_metrics']['v2t_metrics']['R50'],
+                'val/v2t_MedR':log['nested_val_metrics']['v2t_metrics']['MedR'],
+                'val/v2t_MeanR':log['nested_val_metrics']['v2t_metrics']['MeanR']}, step=epoch) 
+        
         return log
 
     def log_metrics(self, metric_store, metric_name, mode):
@@ -115,6 +139,7 @@ class Trainer(BaseTrainer):
         Note:
             The validation metrics in log must have the key 'val_metrics'.
         """
+        
         self.model.eval()
         total_val_loss = 0
         total_val_metrics = np.zeros(len(self.metrics))
@@ -163,10 +188,15 @@ class Trainer(BaseTrainer):
         for name, p in self.model.named_parameters():
             self.writer.add_histogram(name, p, bins='auto')
 
-        return {
-            'val_loss': total_val_loss / len(self.valid_data_loader),
-            'nested_val_metrics': nested_metrics
-        }
+        
+        # return {
+        #     'val_loss': total_val_loss / len(self.valid_data_loader),
+        #     'nested_val_metrics': nested_metrics
+        # }
+        myDict = {'val_loss': total_val_loss / len(self.valid_data_loader),
+                  'nested_val_metrics': nested_metrics}
+        
+        return myDict
 
     def _progress(self, batch_idx):
         base = '[{}/{} ({:.0f}%)]'
@@ -215,5 +245,4 @@ def intra_movie_metrics(sims, imdbids, metrics):
         #meanr_n = np.array(meanr) / np.array(n_clips)
         r1, medr, meanr = np.mean(r1), np.mean(medr), np.mean(meanr)
         nested_metrics[metric_name] = {'R1': r1, 'MedR': medr, 'MeanR': meanr}
-
     return nested_metrics

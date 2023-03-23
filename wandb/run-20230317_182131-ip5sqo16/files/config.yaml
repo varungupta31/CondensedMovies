@@ -1,0 +1,141 @@
+wandb_version: 1
+
+_config:
+  desc: null
+  value:
+    arch:
+      args:
+        aggregation_method:
+          description:
+            cluster_size: 10
+            ghost_clusters: 0
+            type: net_vlad
+          face:
+            type: mean
+          label:
+            cluster_size: 10
+            ghost_clusters: 0
+            type: net_vlad
+          speech:
+            cluster_size: 0
+            ghost_clusters: 0
+            type: mean
+        pretrained: ''
+        projection_dim: 512
+        use_moe: false
+      type: MoEE
+    data_loader:
+      args:
+        batch_size: 32
+        data_dir: data
+        experts:
+          characters: ''
+          clip_name: BERT/bert-large-cased/clip_name/agg/agg.npy
+          context: ''
+          description: BERT/bert-large-cased/description/agg/agg_word.npy
+          face: SE-ResNet-50/256D_vgg_face2/agg/agg_feats_mean.npy
+          plot: BERT/bert-large-cased/plot/agg/agg.npy
+          rgb: SE-ResNet-154/pred_imagenet_25fps_256px_stride1_offset0/agg/agg_feats_mean.npy
+          s3d: S3DG/pred_s3dg_10fps_256px_stride16_offset0_inner_stride1/agg/agg_feats_mean.npy
+          scene: DenseNet-161/pred_scene_25fps_256px_stride1_offset0/agg/agg_feats_mean.npy
+          speech: BERT/bert-large-cased/speech/agg/agg.npy
+          video: I3D/pred_i3d_25fps_256px_stride25_offset0_inner_stride1/agg/agg_feats_mean.npy
+        experts_used:
+          characters: false
+          clip_name: false
+          description: true
+          face: false
+          rgb: false
+          s3d: false
+          scene: true
+          speech: false
+          video: false
+        label: description
+        max_tokens:
+          characters: 10
+          description: 20
+          face: 5
+          plot: 60
+          speech: 20
+        metadata_dir: data/metadata
+        num_workers: 4
+        shuffle: true
+      type: MovieClipsDataLoader
+    loss:
+      args:
+        fix_norm: true
+        margin: 0.12132983763957966
+      type: MaxMarginRankingLoss
+    lr_scheduler:
+      args:
+        gamma: 0.1
+        step_size: 50
+      type: StepLR
+    metrics:
+    - t2v_metrics
+    - v2t_metrics
+    n_gpu: 1
+    name: MoEE
+    optimizer:
+      args:
+        amsgrad: true
+        lr: 0.0003
+        weight_decay: 0
+      type: Adam
+    trainer:
+      early_stop: 50
+      epochs: 200
+      monitor: min val_loss
+      retrieval: inter
+      save_dir: /ssd_scratch/cvit/varun/saved
+      save_period: 1
+      tensorboard: false
+      verbosity: 2
+_log_dir:
+  desc: null
+  value: /ssd_scratch/cvit/varun/saved/log/MoEE/0317_182127
+_save_dir:
+  desc: null
+  value: /ssd_scratch/cvit/varun/saved/models/MoEE/0317_182127
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.13.10
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.7.10
+    start_time: 1679057491.440279
+    t:
+      1:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      2:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      3:
+      - 13
+      - 16
+      - 23
+      4: 3.7.10
+      5: 0.13.10
+      8:
+      - 5
+cfg_fname:
+  desc: null
+  value: configs/moe.json
+log_levels:
+  desc: null
+  value:
+    '0': 30
+    '1': 20
+    '2': 10
+resume:
+  desc: null
+  value: null

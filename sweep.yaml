@@ -1,0 +1,10 @@
+program : train.py configs/moe.json
+method: random
+
+project: cmd
+
+parameters:
+  optimizer:
+    lr:
+      min: 1e-5
+      max: 3e-5

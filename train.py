@@ -9,8 +9,19 @@ from parse_config import ConfigParser
 from trainer import Trainer
 import ipdb
 import os
+import wandb
+import datetime
+
+def log_cur_time():
+    x = datetime.datetime.now()
+    return str(x).replace(" ","_")[:-10]
 
 def main(config):
+    wandb.init(
+        name='scene_ablation_'+log_cur_time(),
+        project="cmd",
+        config=config
+    )
     logger = config.get_logger('train')
 
     # setup data_loader instances
@@ -45,7 +56,6 @@ def main(config):
                       lr_scheduler=lr_scheduler)
 
     trainer.train()
-
     return logger
 
 
