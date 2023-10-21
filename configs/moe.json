@@ -43,10 +43,10 @@
                 "characters": false,
                 "clip_name": false,
                 "description": true,
-                "face": true,
-                "rgb": true,
-                "scene": true,
-                "speech": true,
+                "face": false,
+                "rgb": false,
+                "scene": false,
+                "speech": false,
                 "video": true,
                 "s3d": false
             },
@@ -100,7 +100,7 @@
         }
     },
     "trainer": {
-        "epochs": 100,
+        "epochs": 2,
         "save_dir": "saved",
         "save_period": 1,
         "verbosity": 2,

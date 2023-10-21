@@ -16,7 +16,7 @@ def main(config):
     # setup data_loader instances
     config._config['data_loader']['args']['split'] = 'train'
     data_loader = config.initialize('data_loader', module_data)
-    config._config['data_loader']['args']['split'] = 'val'
+    config._config['data_loader']['args']['split'] = 'test'
     valid_data_loader = config.initialize('data_loader', module_data)
 
     # TODO: improve this, safely clone args across config classes
@@ -27,7 +27,7 @@ def main(config):
     # build model architecture, then print to console
     model = config.initialize('arch', module_arch)
     logger.info(model)
-
+        
     # get function handles of loss and metrics
     loss = config.initialize(name="loss", module=module_loss)
     metrics = [getattr(module_metric, met) for met in config['metrics']]

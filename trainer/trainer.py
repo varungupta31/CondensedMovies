@@ -6,7 +6,7 @@ from utils import inf_loop
 from model.model import sim_matrix
 import ipdb
 from torch import autograd
-
+from tqdm import tqdm
 class Trainer(BaseTrainer):
     """
     Trainer class
@@ -54,7 +54,10 @@ class Trainer(BaseTrainer):
 
             The metrics in log must have the key 'metrics'.
         """
-        self.model.train()
+        if epoch==1:
+            self.model.eval()
+        else:
+            self.model.train()
 
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
@@ -65,11 +68,12 @@ class Trainer(BaseTrainer):
                     minibatch[expert][key] = val.to(self.device)
 
             self.optimizer.zero_grad()
-            with autograd.detect_anomaly():
-                output = self.model(minibatch)
-                loss = self.loss(output)
+            output = self.model(minibatch)
+            loss = self.loss(output)
+
+            if epoch!=1:
                 loss.backward()
-            self.optimizer.step()
+                self.optimizer.step()
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.writer.add_scalar('loss', loss.item())
             total_loss += loss.item()
@@ -91,7 +95,8 @@ class Trainer(BaseTrainer):
         }
 
         if self.do_validation:
-            val_log = self._valid_epoch(epoch)
+            #val_log = self._valid_epoch(epoch)
+            val_log = self._memory_save_valid(epoch)
             log.update(val_log)
 
         if self.lr_scheduler is not None:
@@ -105,6 +110,7 @@ class Trainer(BaseTrainer):
             self.writer.set_step(step=self.seen[mode], mode=mode)
             for key, value in metric_store.items():
                 self.writer.add_scalar(f"{metric_name}/{key}", value)
+    
 
     def _valid_epoch(self, epoch):
         """
@@ -115,6 +121,7 @@ class Trainer(BaseTrainer):
         Note:
             The validation metrics in log must have the key 'val_metrics'.
         """
+        
         self.model.eval()
         total_val_loss = 0
         total_val_metrics = np.zeros(len(self.metrics))

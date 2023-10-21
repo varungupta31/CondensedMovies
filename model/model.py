@@ -11,7 +11,7 @@ from torch import autograd
 class MoEE(BaseModel):
     def __init__(self, label, experts_used, expert_dims, aggregation_method, projection_dim, pretrained, use_moe):
         super().__init__()
-        self.n_clips = 1
+        self.n_clips = 3
         self.label = label
         self.experts_used = experts_used.copy()
         self.experts_used.remove(self.label)
@@ -133,6 +133,150 @@ class MoEE(BaseModel):
             return conf_mat, video_embed_mod, text_embed_mod, moe_weights
 
         return conf_mat
+    
+
+    def forward_video(self, x):
+        """
+        The input is a minibatch, a dict video and label. Video is a dict of 'ftr' and 'missing'. 
+        """
+        missing = []
+        res = {}
+        video_experts = []
+        for expert in x:
+            ftr = x[expert]['ftr']
+            miss = x[expert]['missing']
+            if expert == 'label':
+                ftr = ftr.squeeze(1)
+                ftr = self.aggregation[expert](ftr, x[expert]['n_tokens'])
+            else:
+                if len(ftr.shape) == 4:
+                    n_tokens = x[expert]['n_tokens']
+                    ftr = self.aggregation[expert](ftr, n_tokens)
+                res[expert] = ftr
+                missing.append(miss)
+                video_experts.append(expert)
+        missing = torch.stack(missing, dim=1).bool()
+        video_embed = []
+        for idx, expert in enumerate(video_experts):
+            video_embed.append(self.video_GU[expert](res[expert]))
+            
+        video_embed = torch.stack(video_embed, dim=2)  # b, n_clips, experts, ftr_dim
+        batch_sz = video_embed.shape[0]
+        video_embed_mod = []
+
+        for idx in range(self.n_clips):
+            video_embed_mod.append(self.clip_GU[idx](video_embed[:, idx]))  # clip-level GU
+            
+        video_embed_mod = torch.stack(video_embed_mod, dim=2)  # b, expert, clip, ftr_dim
+        video_embed_mod = F.normalize(video_embed_mod, dim=-1)
+
+        missing = missing.unsqueeze(0)
+        #missing = missing.repeat(batch_sz, 1, 1, 1)
+        
+        return video_embed_mod, missing
+
+    def forward_retrieve_one(self, x, video_embed_mod, missing):
+        """
+        Using the videos emebeddings computed above, compute moe_weight and label embeddings
+        and use them to comput the similarity matrix.
+        conf_mat = []  # 1 x 6586
+        return conf_mat
+        """
+    
+        #missing = []
+        
+
+        res = {}
+        video_experts = []
+        for expert in x:
+            ftr = x[expert]['ftr']
+            miss = x[expert]['missing']
+            if expert == 'label':
+                ftr = ftr.squeeze(1)
+                ftr = self.aggregation[expert](ftr, x[expert]['n_tokens'])
+                # ftr = ftr.mean(dim=1)
+                text = ftr
+            else:
+                if len(ftr.shape) == 4:
+                    n_tokens = x[expert]['n_tokens']
+                    ftr = self.aggregation[expert](ftr, n_tokens)
+                res[expert] = ftr
+                #missing.append(miss)
+                video_experts.append(expert)
+
+        
+        #missing = torch.stack(missing, dim=1).bool()  # b, expert, clip
+        #missing_temp_v1 = missing
+        text_embed = []
+        #video_embed = []
+        for idx, expert in enumerate(video_experts):
+            #video_embed.append(self.video_GU[expert](res[expert]))
+            text_embed.append(self.text_GU[expert](text))
+            
+
+        #video_embed = torch.stack(video_embed, dim=2)  # b, n_clips, experts, ftr_dim
+        text_embed = torch.stack(text_embed, dim=1)  # b, expert, ftr_dim
+        text_embed_temp_v2 = text_embed
+
+
+        batch_sz = text_embed.shape[0]
+        
+
+        #video_embed_mod = []
+        text_embed_mod = []
+        for idx in range(self.n_clips):
+            #video_embed_mod.append(self.clip_GU[idx](video_embed[:, idx]))  # clip-level GU
+            text_embed_mod.append(self.text_clip[idx](text_embed))
+            
+
+        #video_embed_mod = torch.stack(video_embed_mod, dim=2)  # b, expert, clip, ftr_dim
+        text_embed_mod = torch.stack(text_embed_mod, dim=2)
+        text_embed_mod_temp_v3 = text_embed_mod
+        #video_embed_mod = F.normalize(video_embed_mod, dim=-1)
+        text_embed_mod = F.normalize(text_embed_mod, dim=-1)
+        text_embed_mod_temp_v4 = text_embed_mod
+
+        moe_weights = self.get_moe_scores(text)
+
+        text_temp_v5 = text
+        moe_weight_temp_v6 = moe_weights
+
+        moe_weights = moe_weights.view(-1, len(self.experts_used), self.n_clips)  # b, expert, clip
+        moe_weights_temp_v7 = moe_weights
+
+        moe_weights = moe_weights.unsqueeze(1).repeat(1, batch_sz, 1, 1)  # text, video, expert, clip
+        moe_weights_temp_v8 =  moe_weights
+
+        
+        #missing = missing.unsqueeze(0)  # 1, video, expert, clip
+        #missing_temp_v9 = missing
+        #missing = missing.repeat(batch_sz, 1, 1, 1)
+        #missing_temp_v10 = missing
+
+
+        moe_weights = moe_weights.masked_fill(missing, 0)
+        moe_weights_temp_v11 = moe_weights
+        norm_weights = torch.sum(moe_weights, dim=(2, 3)).unsqueeze(2).unsqueeze(3)
+        moe_weights_temp_v12 = norm_weights
+        moe_weights = torch.div(moe_weights, norm_weights)
+        moe_weights_temp_v13 = moe_weights
+
+        label_embeddings = text_embed_mod
+        moe = moe_weights
+
+        content_embeddings = video_embed_mod
+        
+
+        sims = sim_matrix(label_embeddings, content_embeddings, weights=moe)
+        sims_temp_v14 = sims
+        #einsumout_temp_v15 = einsumout
+
+        # return sims, missing_temp_v1.cpu(), text_embed_temp_v2.cpu(), text_embed_mod_temp_v3.cpu(), text_embed_mod_temp_v4.cpu(), text_temp_v5.cpu(), \
+        #        moe_weight_temp_v6.cpu(), moe_weights_temp_v7.cpu(), moe_weights_temp_v8.cpu(), missing_temp_v9.cpu(), missing_temp_v10.cpu(), moe_weights_temp_v11.cpu(), \
+        #        moe_weights_temp_v12.cpu(), moe_weights_temp_v13.cpu(), sims_temp_v14, einsumout_temp_v15
+        return sims, label_embeddings, moe
+
+
 
 class Collaborative_Gating_Unit(nn.Module):
     def __init__(self, output_dimension, num_inputs, number_g_layers, number_h_layers, use_bn_reason):
