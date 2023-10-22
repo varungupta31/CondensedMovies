@@ -1,3 +1,28 @@
+This is a modified implementation, primarily taking care of the following two aspects.
+
+1. Fixing the Dataloader to actually load multiple clips for a given text query (CBM).
+2. Modifying the Validation call to enable batch processing. This is done (as of now) by loading all the video features at once, and then computing the similarity score for the entire gallery against the current text feature.
+
+Running Instructions (Personal Note):
+
+1. `MovieClips_dataset.py` file contains two arguments: `p_context_window` and `f_context_window`, which indicate the number of videos considered before and after the current windows (context window size sorta). If these are both 1, the total clips become 3. `n_clips` in `model.py` need to be updated accorinngly.
+
+2. If the batch processing approach is to be avoided, and the original processing to be used, change 
+```
+if self.do_validation:
+            #val_log = self._valid_epoch(epoch)
+            val_log = self._memory_save_valid(epoch)
+            log.update(val_log)
+```
+to
+```
+if self.do_validation:
+            #val_log = self._valid_epoch(epoch)
+            val_log = self._valid_epoch(epoch)
+            log.update(val_log)
+```
+
+
 ## CondensedMovies
 
 **** ___N.B: Please use the condensed movies challenge https://github.com/m-bain/CondensedMovies-chall with updated splits since some videos in the original paper are unavailable with missing features ****____
