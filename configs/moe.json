@@ -1,6 +1,7 @@
 {
     "name": "MoEE",
     "n_gpu": 1,
+    "n_clips": 3,
     "arch": {
         "type": "MoEE",
         "args": {
@@ -41,14 +42,14 @@
 
             "experts_used": {
                 "characters": false,
-                "clip_name": false,
+                "clip_name": true,
                 "description": true,
-                "face": false,
-                "rgb": false,
-                "scene": false,
+                "face": true,
+                "rgb": true,
+                "scene": true,
                 "speech": true,
                 "video": true,
-                "s3d": false
+                "s3d": true
             },
             "experts": {
               "characters": "",
@@ -75,7 +76,7 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.001,
+            "lr": 0.000003,
             "weight_decay": 0,
             "amsgrad": true
         }
@@ -100,7 +101,7 @@
         }
     },
     "trainer": {
-        "epochs": 5,
+        "epochs": 50,
         "save_dir": "/ssd_scratch/cvit/varun/cmd_baseline_models",
         "save_period": 1,
         "verbosity": 2,
@@ -108,5 +109,7 @@
         "early_stop": 4,
         "tensorboard": false,
         "retrieval": "inter"
-    }
+    },
+    "wandb_run_name": "p1f1_3e-6_all_mods_cmd_og_fets",
+    "wandb_run_id": "1a"
 }

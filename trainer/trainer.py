@@ -127,6 +127,9 @@ class Trainer(BaseTrainer):
                     minibatch[expert][key] = val.to(self.device)
             imdbids += id['imdbid']
             videoids += id['videoid']
+            output, _, _, _ = self.model(minibatch, evaluation=True, debug=True)
+            loss = self.loss(output)
+            total_val_loss += loss.item()
             res, miss = self.model.forward_video(minibatch)
             content_embeddings.append(res)
             missing.append(miss)

@@ -11,6 +11,7 @@ import ipdb
 import os
 import wandb
 import datetime
+from utils import set_seed
 
 def log_cur_time():
     x = datetime.datetime.now()
@@ -18,7 +19,7 @@ def log_cur_time():
 
 def main(config):
     logger = config.get_logger('train')
-
+    set_seed(0)
     # setup data_loader instances
     config._config['data_loader']['args']['split'] = 'train'
     config._config['data_loader']['args']['shuffle'] = True
@@ -89,5 +90,5 @@ if __name__ == '__main__':
     #]
 
     config = ConfigParser(args)
-    wandb.init(project="ttv",config=config,name=config["wandb_run_name"]+"_"+log_cur_time(), id=config["wandb_run_id"])
+    wandb.init(project="cmd_baseline",config=config,name=config["wandb_run_name"]+"_"+log_cur_time(), id=config["wandb_run_id"])
     main(config)
