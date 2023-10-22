@@ -13,7 +13,7 @@ class MovieClipsDataLoader(BaseDataLoader):
         self.dataset = MovieClips(data_dir, metadata_dir, label, experts_used, experts, max_tokens, split)
 
         # batch size of entire val test set. change this for intra-movie
-        if split in ['val', 'test']:
-            batch_size = len(self.dataset.data['clips'])
-            shuffle = False
+        # if split in ['val', 'test']:
+        #     batch_size = len(self.dataset.data['clips'])
+        #     shuffle = False
         super().__init__(self.dataset, batch_size, split, shuffle, num_workers)

@@ -146,6 +146,7 @@ class MovieClips(Dataset):
 
     def __len__(self):
         return len(self.data['clips'])
+        # return 1280
 
     # def __getitem__(self, item):
     #     # @R The self.data is a dictionary, with the 'experts' as the keys.
@@ -183,8 +184,8 @@ class MovieClips(Dataset):
         # @R self.data['movies'].columns --> Index(['title', 'year'], dtype='object')
 
         #How many clips BEFORE and AFTER to be considered
-        p_context_window = 1
-        f_context_window = 1
+        p_context_window = 2
+        f_context_window = 2
         
 
         imdbid = self.data['clips'].iloc[item].imdbid

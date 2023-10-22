@@ -16,7 +16,7 @@ class Trainer(BaseTrainer):
     """
 
     def __init__(self, model, loss, metrics, optimizer, config, data_loader,
-                 valid_data_loader=None, lr_scheduler=None, len_epoch=None):
+                 valid_data_loader=None, valid_data_loader_stoch=None, lr_scheduler=None, len_epoch=None):
         super().__init__(model, loss, metrics, optimizer, config)
         self.data_loader = data_loader
         if len_epoch is None:
@@ -27,6 +27,7 @@ class Trainer(BaseTrainer):
             self.data_loader = inf_loop(data_loader)
             self.len_epoch = len_epoch
         self.valid_data_loader = valid_data_loader
+        self.valid_data_loader_stoch = valid_data_loader_stoch
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
@@ -110,7 +111,67 @@ class Trainer(BaseTrainer):
             self.writer.set_step(step=self.seen[mode], mode=mode)
             for key, value in metric_store.items():
                 self.writer.add_scalar(f"{metric_name}/{key}", value)
-    
+
+    @torch.no_grad()
+    def _memory_save_valid(self, epoch):
+        self.model.eval()
+        content_embeddings = []
+        missing = []
+        imdbids = []
+        videoids = []
+        total_val_loss = 0
+        #TODO: Explore the Alternate Batching (V-T).
+        for batch_idx, (minibatch, id) in tqdm(enumerate(self.valid_data_loader), desc="First Iteration To Prepare the Content Embedding and MoE weights."):
+            for expert, subdict in minibatch.items():
+                for key, val in subdict.items():
+                    minibatch[expert][key] = val.to(self.device)
+            imdbids += id['imdbid']
+            videoids += id['videoid']
+            res, miss = self.model.forward_video(minibatch)
+            content_embeddings.append(res)
+            missing.append(miss)
+        content_embeddings = torch.cat(content_embeddings, dim=0) #6569, 1, 3, 512
+        missing = torch.cat(missing, dim=1)
+
+        sims_matrix = []
+        label_embeddings = []
+        weights_embeddings = []
+        sims_matrix = []
+        for batch_idx, (minibatch, id) in tqdm(enumerate(self.valid_data_loader_stoch), desc='Second Iteration to Compute the Similarity Matrix'):
+            for expert, subdict in minibatch.items():
+                for key, val in subdict.items():
+                    minibatch[expert][key] = val.to(self.device)
+            #sims, missing_temp_v1, text_embed_temp_v2, text_embed_mod_temp_v3, text_embed_mod_temp_v4, text_temp_v5, moe_weight_temp_v6, moe_weights_temp_v7, moe_weights_temp_v8, missing_temp_v9, missing_temp_v10, moe_weights_temp_v11, moe_weights_temp_v12, moe_weights_temp_v13, sims_temp_v14, einsumout_temp_v15 = model.forward_retrieve_one(minibatch, content_embeddings)
+            sims, label, weights  = self.model.forward_retrieve_one(minibatch, content_embeddings, missing)
+            #label_embeddings.append(label.cpu())
+            #weights_embeddings.append(weights)
+            sims_matrix.append(torch.tensor(sims))
+         
+        sims = torch.cat(sims_matrix, dim=0).cpu().numpy()
+        
+        nested_metrics = {}
+
+        if self.config['retrieval'] == 'intra':
+            nested_metrics = intra_movie_metrics(sims, imdbids, self.metrics)
+        else:
+            for metric in self.metrics:
+                metric_name = metric.__name__
+                res = metric(sims)  # query_masks=meta["query_masks"]) # TODO: Query mask
+                if metric_name == "mean_average_precision":
+                    print(f"Epoch: {epoch}, mean AP: {res['mAP']}")
+                else:
+                    verbose(epoch=epoch, metrics=res, name='MovieClips', mode=metric_name) # TODO: refactor dataset name
+                self.log_metrics(res, metric_name=metric_name, mode="val")
+                nested_metrics[metric_name] = res
+
+        # add histogram of model parameters to the tensorboard
+        for name, p in self.model.named_parameters():
+            self.writer.add_histogram(name, p, bins='auto')
+
+        return { 
+            'val_loss': total_val_loss / len(self.valid_data_loader),
+            'nested_val_metrics': nested_metrics
+        }
 
     def _valid_epoch(self, epoch):
         """

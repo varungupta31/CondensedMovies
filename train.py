@@ -15,9 +15,18 @@ def main(config):
 
     # setup data_loader instances
     config._config['data_loader']['args']['split'] = 'train'
+    config._config['data_loader']['args']['shuffle'] = True
     data_loader = config.initialize('data_loader', module_data)
-    config._config['data_loader']['args']['split'] = 'test'
+
+    #TODO: Intended to Store Content Embeddings, Batching Needed?
+    config._config['data_loader']['args']['split'] = 'val'
+    config._config['data_loader']['args']['batch_size'] = 3339
+    config._config['data_loader']['args']['shuffle'] = False
     valid_data_loader = config.initialize('data_loader', module_data)
+
+    config._config['data_loader']['args']['shuffle'] = False
+    config._config['data_loader']['args']['batch_size'] = 1
+    valid_data_loader_stoch = config.initialize('data_loader', module_data)
 
     # TODO: improve this, safely clone args across config classes
     config._config['arch']['args']['label'] = data_loader.dataset.label
@@ -42,6 +51,7 @@ def main(config):
                       config=config,
                       data_loader=data_loader,
                       valid_data_loader=valid_data_loader,
+                      valid_data_loader_stoch = valid_data_loader_stoch,
                       lr_scheduler=lr_scheduler)
 
     trainer.train()

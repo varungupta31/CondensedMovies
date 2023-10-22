@@ -11,7 +11,7 @@ from torch import autograd
 class MoEE(BaseModel):
     def __init__(self, label, experts_used, expert_dims, aggregation_method, projection_dim, pretrained, use_moe):
         super().__init__()
-        self.n_clips = 3
+        self.n_clips = 5
         self.label = label
         self.experts_used = experts_used.copy()
         self.experts_used.remove(self.label)
@@ -239,13 +239,13 @@ class MoEE(BaseModel):
         moe_weights = self.get_moe_scores(text)
 
         text_temp_v5 = text
-        moe_weight_temp_v6 = moe_weights
+        # moe_weight_temp_v6 = moe_weights
 
         moe_weights = moe_weights.view(-1, len(self.experts_used), self.n_clips)  # b, expert, clip
-        moe_weights_temp_v7 = moe_weights
+        # moe_weights_temp_v7 = moe_weights
 
         moe_weights = moe_weights.unsqueeze(1).repeat(1, batch_sz, 1, 1)  # text, video, expert, clip
-        moe_weights_temp_v8 =  moe_weights
+        # moe_weights_temp_v8 =  moe_weights
 
         
         #missing = missing.unsqueeze(0)  # 1, video, expert, clip
@@ -255,11 +255,11 @@ class MoEE(BaseModel):
 
 
         moe_weights = moe_weights.masked_fill(missing, 0)
-        moe_weights_temp_v11 = moe_weights
+        # moe_weights_temp_v11 = moe_weights
         norm_weights = torch.sum(moe_weights, dim=(2, 3)).unsqueeze(2).unsqueeze(3)
-        moe_weights_temp_v12 = norm_weights
+        # moe_weights_temp_v12 = norm_weights
         moe_weights = torch.div(moe_weights, norm_weights)
-        moe_weights_temp_v13 = moe_weights
+        # moe_weights_temp_v13 = moe_weights
 
         label_embeddings = text_embed_mod
         moe = moe_weights
@@ -349,13 +349,16 @@ class Context_Gating(nn.Module):
 
     def forward(self, x):
         x1 = self.fc(x)
+        try:
 
-        if self.add_batch_norm:
-            x1 = self.batch_norm(x1)
+            if self.add_batch_norm:
+                x1 = self.batch_norm(x1)
 
-        x = torch.cat((x, x1), -1)
+            x = torch.cat((x, x1), -1)
 
-        return F.glu(x, -1)
+            return F.glu(x, -1)
+        except:
+            print("Something wrong")
 
 class ContextGatingReasoning(nn.Module):
     def __init__(self, dimension, n_clips, add_batch_norm=True):
