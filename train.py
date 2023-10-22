@@ -9,6 +9,12 @@ from parse_config import ConfigParser
 from trainer import Trainer
 import ipdb
 import os
+import wandb
+import datetime
+
+def log_cur_time():
+    x = datetime.datetime.now()
+    return str(x).replace(" ","_")[:-10]
 
 def main(config):
     logger = config.get_logger('train')
@@ -83,4 +89,5 @@ if __name__ == '__main__':
     #]
 
     config = ConfigParser(args)
+    wandb.init(project="ttv",config=config,name=config["wandb_run_name"]+"_"+log_cur_time(), id=config["wandb_run_id"])
     main(config)
