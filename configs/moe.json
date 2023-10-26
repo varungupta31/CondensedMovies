@@ -42,7 +42,7 @@
 
             "experts_used": {
                 "characters": false,
-                "clip_name": true,
+                "clip_name": false,
                 "description": true,
                 "face": true,
                 "rgb": true,
@@ -76,7 +76,7 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.000003,
+            "lr": 0.00005,
             "weight_decay": 0,
             "amsgrad": true
         }
@@ -110,6 +110,6 @@
         "tensorboard": false,
         "retrieval": "inter"
     },
-    "wandb_run_name": "p1f1_3e-6_all_mods_cmd_og_fets",
-    "wandb_run_id": "1a"
+    "wandb_run_name": "p1f1_1e-5_all_mods_cmd_og_fets",
+    "wandb_run_id": "1b"
 }
