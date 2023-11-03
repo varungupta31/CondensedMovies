@@ -33,8 +33,8 @@
     "data_loader": {
         "type": "MovieClipsDataLoader",
         "args": {
-            "data_dir": "data",
-            "metadata_dir": "data/metadata",
+            "data_dir": "/ssd_scratch/cvit/varun/cmdformer_data/cmd_format",
+            "metadata_dir": "/ssd_scratch/cvit/varun/cmdformer_data/cmd_format/metadata",
             "batch_size": 64,
             "shuffle": true,
             "num_workers": 4,
@@ -53,16 +53,16 @@
             },
             "experts": {
               "characters": "",
-              "clip_name": "BERT/bert-large-cased/clip_name/agg/agg.npy",
+              "clip_name": "",
               "context": "",
-              "description": "BERT/bert-large-cased/description/agg/agg_word.npy",
-              "face": "SE-ResNet-50/256D_vgg_face2/agg/agg_feats_mean.npy",
-              "plot": "BERT/bert-large-cased/plot/agg/agg.npy",
-              "rgb": "SE-ResNet-154/pred_imagenet_25fps_256px_stride1_offset0/agg/agg_feats_mean.npy",
-              "scene": "DenseNet-161/pred_scene_25fps_256px_stride1_offset0/agg/agg_feats_mean.npy",
-              "speech": "BERT/bert-large-cased/speech/agg/agg.npy",
+              "description": "BERT/bert-large-cased/description/agg/agg.npy",
+              "face": "",
+              "plot": "",
+              "rgb": "",
+              "scene": "",
+              "speech": "",
               "video": "I3D/pred_i3d_25fps_256px_stride25_offset0_inner_stride1/agg/agg_feats_mean.npy",
-              "s3d": "S3DG/pred_s3dg_10fps_256px_stride16_offset0_inner_stride1/agg/agg_feats_mean.npy"
+              "s3d": ""
             },
             "max_tokens": {
                 "description": 20,
@@ -101,15 +101,15 @@
         }
     },
     "trainer": {
-        "epochs": 100,
-        "save_dir": "/ssd_scratch/cvit/varun/cmd_baseline_models",
-        "save_period": 20,
+        "epochs": 50,
+        "save_dir": "/ssd_scratch/cvit/varun/cmd_p1f1_custom_feats_baseline_models",
+        "save_period": 1,
         "verbosity": 2,
         "monitor": "min val_loss",
         "early_stop": 4,
         "tensorboard": false,
         "retrieval": "inter"
     },
-    "wandb_run_name": "p1f1_1e-5_all_mods_cmd_og_fets",
-    "wandb_run_id": "1b"
+    "wandb_run_name": "p1f1_1e-5_text_video_cmd_baseline",
+    "wandb_run_id": "1d"
 }

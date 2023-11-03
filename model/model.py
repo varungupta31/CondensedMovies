@@ -113,7 +113,10 @@ class MoEE(BaseModel):
         video_embed_mod = F.normalize(video_embed_mod, dim=-1)
         text_embed_mod = F.normalize(text_embed_mod, dim=-1)
 
+        if (torch.isnan(self.get_moe_scores(text)).any().item()):
+            print("Found nan in moe score calculation")
         moe_weights = self.get_moe_scores(text)
+
         moe_weights = moe_weights.view(-1, len(self.experts_used), self.n_clips)  # b, expert, clip
         moe_weights = moe_weights.unsqueeze(1).repeat(1, batch_sz, 1, 1)  # text, video, expert, clip
 
@@ -122,16 +125,21 @@ class MoEE(BaseModel):
         missing = missing.repeat(batch_sz, 1, 1, 1)
 
         moe_weights = moe_weights.masked_fill(missing, 0)
+        if torch.isnan(moe_weights).any().item():
+            print("Found nan in moe_weights")
         norm_weights = torch.sum(moe_weights, dim=(2, 3)).unsqueeze(2).unsqueeze(3)
+        
+        copy_moe_weights = moe_weights
+        copy_norm_weights = norm_weights
         moe_weights = torch.div(moe_weights, norm_weights)
-
+        if torch.isnan(moe_weights).any().item():
+            print("Found nan in normalized moe weights")
         embed_stack = torch.einsum('tecd,vecd->tvec', [text_embed_mod, video_embed_mod])  # text x video x expert x clip
         embed_stack = embed_stack * moe_weights  # tvec similarity scores
         conf_mat = embed_stack.sum(dim=(2, 3))  # sum over e,c
 
         if evaluation:
             return conf_mat, video_embed_mod, text_embed_mod, moe_weights
-
         return conf_mat
     
 

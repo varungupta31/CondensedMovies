@@ -24,7 +24,7 @@ def main(config):
 
     # setup data_loader instances
     config._config['data_loader']['args']['split'] = 'test'
-    config._config['data_loader']['args']['batch_size'] = 6581
+    config._config['data_loader']['args']['batch_size'] = 6586
     data_loader = config.initialize('data_loader', module_data)
 
     experts_used = data_loader.dataset.experts_used
@@ -55,7 +55,8 @@ def main(config):
         print('Using untrained model...')
 
     # prepare model for testing
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cpu")
     model = model.to(device)
     model.eval()
 

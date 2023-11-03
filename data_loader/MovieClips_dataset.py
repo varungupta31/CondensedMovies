@@ -35,6 +35,8 @@ class MovieClips(Dataset):
         # @R TODO: Understand the functionality for the 'max_tokens'
         self.max_tokens = max_tokens
         self.split = split
+        #This parameter decides if the self.data[clip] will be overridden or not. Overriding is required when comparing with the cmdformer implementation.
+        self.running_as_baseline = False
         self._load_metadata()
         self._load_data()
 
@@ -62,7 +64,8 @@ class MovieClips(Dataset):
             ids = split_data[split_data['split'].isin(['train', 'val'])].index
         else:
             # @R ids store the imbdb id of the movies belonging to the defined split.
-            ids = split_data[split_data['split'] == self.split].index
+            ids = split_data[split_data['split'] == self.split].index    
+
         for key in data:
             if 'imdbid' in data[key]:
                 filter = data[key]['imdbid'].isin(ids)
@@ -70,6 +73,7 @@ class MovieClips(Dataset):
                 filter = data[key].index.isin(ids)
             # @R TODO: Need to understand what passing a boolean list to a dataframe does. Expected is that it returns a subset of the filtered/True columns.
             data[key] = data[key][filter]
+
 
         # Remove inappropriate data
         #empty_clips = pd.read_csv(osj(self.metadata_dir, 'empty_vids.csv')).set_index('videoid')
@@ -142,40 +146,34 @@ class MovieClips(Dataset):
         # @R Before len(self.data['clips']) = 24098 || After --> 24035
         # @R Most clips covered under some feature or the other...
         self.data['clips'] = self.data['clips'][self.data['clips'].index.isin(clips_with_data)]
+        
+        # """
+        # Modifying the self.data[clips] depending if the .csv files are specified or not, based on the split! [Making the data for cmdformer and baseline consistent]
+        # """
+
+        # if self.running_as_baseline:
+        #     if self.split == "train":
+        #         train_split = pd.read_csv("/ssd_scratch/cvit/varun/cmdformer_data/cmd_format/metadata/baseline_splits/train.csv", index_col='videoid')
+        #         train_desc =  pd.read_csv("/ssd_scratch/cvit/varun/cmdformer_data/cmd_format/metadata/baseline_splits/desc_train.csv", index_col='videoid')
+        #         self.data["clips"] = train_split
+        #         self.data["descs"] = train_desc
+        #     elif self.split == "val":
+        #         val_split = pd.read_csv("/ssd_scratch/cvit/varun/cmdformer_data/cmd_format/metadata/baseline_splits/val.csv", index_col='videoid')
+        #         val_desc =  pd.read_csv("/ssd_scratch/cvit/varun/cmdformer_data/cmd_format/metadata/baseline_splits/desc_val.csv", index_col='videoid')
+        #         self.data["clips"] = val_split
+        #         self.data["descs"] = val_desc
+        #     elif self.split == "test":
+        #         test_split = pd.read_csv("/ssd_scratch/cvit/varun/cmdformer_data/cmd_format/metadata/baseline_splits/test.csv", index_col='videoid')
+        #         test_desc =  pd.read_csv("/ssd_scratch/cvit/varun/cmdformer_data/cmd_format/metadata/baseline_splits/desc_test.csv", index_col='videoid')
+        #         self.data["clips"] = test_split
+        #         self.data["descs"] = test_desc
+
         print(f'{self.split} size: {len(self.data["clips"])} clips')
 
     def __len__(self):
         return len(self.data['clips'])
         # return 1280
 
-    # def __getitem__(self, item):
-    #     # @R The self.data is a dictionary, with the 'experts' as the keys.
-    #     # @R self.data.keys --> dict_keys(['movies', 'casts', 'clips', 'descs'])
-    #     # @R self.data['movies'] is just the metadata (dataframe).
-    #     # @R self.data['movies'].columns --> Index(['title', 'year'], dtype='object')
-
-    #     #one clip id is stored here.
-    #     videoid = self.data['clips'].iloc[item].name
-    #     imdbid = self.data['clips'].iloc[item].imdbid
-    #     clip_idx = self.data['clips'].iloc[item].clip_idx
-
-    #     """
-    #     @R
-    #     self.data['clips'].iloc[0].clip_idx
-    #     6
-    #     self.data['clips'].iloc[0].imdbid
-    #     'tt1707386'
-    #     """
-    #     data = {}
-    #     for expert in self.experts_used:
-    #         packet = self._get_expert_ftr(expert, videoid)
-    #         if expert == self.label:
-    #             data['label'] = packet
-    #         else:
-    #             data[expert] = packet
-    #     #TODO Add contexy key. 
-    #     id = {'imdbid': self.data['clips'].loc[videoid]['imdbid'], 'videoid': videoid}
-    #     return data, id
 
     def __getitem__(self, item):
         # @R The self.data is a dictionary, with the 'experts' as the keys.
