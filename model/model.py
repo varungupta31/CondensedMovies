@@ -11,7 +11,7 @@ from torch import autograd
 class MoEE(BaseModel):
     def __init__(self, label, experts_used, expert_dims, aggregation_method, projection_dim, pretrained, use_moe):
         super().__init__()
-        self.n_clips = 3
+        self.n_clips = 1
         self.label = label
         self.experts_used = experts_used.copy()
         self.experts_used.remove(self.label)

@@ -85,22 +85,22 @@ class BaseTrainer:
             for key, value in log.items():
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
             
-            # wandb.log({'train/Train_Loss':log['loss'],
-            #             'val/Valid_Loss':log['val_loss'],
-            #             'val/t2v_R1':log['val_t2v_metrics_R1'],
-            #             'val/t2v_R5':log['val_t2v_metrics_R5'],
-            #             'val/t2v_R10':log['val_t2v_metrics_R10'],
-            #             'val/t2v_R50':log['val_t2v_metrics_R50'],
-            #             'val/t2v_MedR':log['val_t2v_metrics_MedR'],
-            #             'val/t2v_MeanR':log['val_t2v_metrics_MeanR'],
-            #             'val/t2v_GeometricMean_R1-R5-R10':log['val_t2v_metrics_geometric_mean_R1-R5-R10'],
-            #             'val/v2t_R1':log['val_v2t_metrics_R1'],
-            #             'val/v2t_R5':log['val_v2t_metrics_R5'],
-            #             'val/v2t_R10':log['val_v2t_metrics_R10'],
-            #             'val/v2t_R50':log['val_v2t_metrics_R50'],
-            #             'val/v2t_MedR':log['val_v2t_metrics_MedR'],
-            #             'val/v2t_MeanR':log['val_v2t_metrics_MeanR'],
-            #             'val/v2t_GeometricMean_R1-R5-R10':log['val_v2t_metrics_geometric_mean_R1-R5-R10']}, step=epoch) 
+            wandb.log({'train/Train_Loss':log['loss'],
+                        'val/Valid_Loss':log['val_loss'],
+                        'val/t2v_R1':log['val_t2v_metrics_R1'],
+                        'val/t2v_R5':log['val_t2v_metrics_R5'],
+                        'val/t2v_R10':log['val_t2v_metrics_R10'],
+                        'val/t2v_R50':log['val_t2v_metrics_R50'],
+                        'val/t2v_MedR':log['val_t2v_metrics_MedR'],
+                        'val/t2v_MeanR':log['val_t2v_metrics_MeanR'],
+                        'val/t2v_GeometricMean_R1-R5-R10':log['val_t2v_metrics_geometric_mean_R1-R5-R10'],
+                        'val/v2t_R1':log['val_v2t_metrics_R1'],
+                        'val/v2t_R5':log['val_v2t_metrics_R5'],
+                        'val/v2t_R10':log['val_v2t_metrics_R10'],
+                        'val/v2t_R50':log['val_v2t_metrics_R50'],
+                        'val/v2t_MedR':log['val_v2t_metrics_MedR'],
+                        'val/v2t_MeanR':log['val_v2t_metrics_MeanR'],
+                        'val/v2t_GeometricMean_R1-R5-R10':log['val_v2t_metrics_geometric_mean_R1-R5-R10']}, step=epoch) 
 
             # evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False

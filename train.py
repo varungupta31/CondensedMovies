@@ -90,5 +90,5 @@ if __name__ == '__main__':
     #]
 
     config = ConfigParser(args)
-    #wandb.init(project="cmd_baseline",config=config,name=config["wandb_run_name"]+"_"+log_cur_time(), id=config["wandb_run_id"])
+    wandb.init(project="cmd_baseline",config=config,name=config["wandb_run_name"]+"_"+log_cur_time())
     main(config)

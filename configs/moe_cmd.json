@@ -106,7 +106,7 @@
         "save_period": 1,
         "verbosity": 2,
         "monitor": "min val_loss",
-        "early_stop": 4,
+        "early_stop": 10,
         "tensorboard": false,
         "retrieval": "inter"
     },

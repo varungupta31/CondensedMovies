@@ -182,8 +182,8 @@ class MovieClips(Dataset):
         # @R self.data['movies'].columns --> Index(['title', 'year'], dtype='object')
 
         #How many clips BEFORE and AFTER to be considered
-        p_context_window = 1
-        f_context_window = 1
+        p_context_window = 0
+        f_context_window = 0
         
 
         imdbid = self.data['clips'].iloc[item].imdbid
